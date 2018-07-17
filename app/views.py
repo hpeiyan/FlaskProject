@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from app import app, db, auth
-from app.models import Goal, User
+from app.models import Goal, User, Feedback
 from flask import abort, request, jsonify, g, url_for
 
 
@@ -67,23 +67,24 @@ def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
     if username is None or password is None:
-        abort(400)  # missing arguments
+        return formattingData(400, "信息缺失", {})
     if User.query.filter_by(username=username).first() is not None:
-        abort(404)  # existing user
+        return formattingData(400, '用户名被注册', {})
+        # abort(404)  # existing user
     user = User(username=username)
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return (jsonify({'username': user.username}), 201,
-            {'Location': url_for('get_user', id=user.id, _external=True)})
+    return formattingData(200, "Success",
+                          {"username": user.username, "Location": url_for('get_user', id=user.id, _external=True)})
 
 
 @app.route('/api/users/<int:id>')
 def get_user(id):
     user = User.query.get(id)
     if not user:
-        abort(400)
-    return jsonify({'username': user.username})
+        return formattingData(400, '查询不到', {})
+    return formattingData(200, 'Success', {'username': user.username})
 
 
 @app.route('/api/token')
@@ -96,4 +97,15 @@ def get_auth_token():
 @app.route('/api/resource')
 @auth.login_required
 def get_resource():
-    return jsonify({'data': 'Hello, %s!' % g.user.username})
+    return formattingData(200, "Success", {"username": g.user.username})
+
+
+@app.route('/api/feedback', methods=['POST'])
+def feedback():
+    username = request.json.get('username')
+    note = request.json.get('note')
+    date = request.json.get('date')
+    feedback = Feedback(username, note, date)
+    db.session.add(feedback)
+    db.session.commit()
+    return formattingData(200, "Success", {})
