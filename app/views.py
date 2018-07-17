@@ -22,15 +22,17 @@ def sync():
         existGoal = Goal.query.filter_by(title=title, username=username).first()
 
         if goal.get('status') == 1:
-            if existGoal is None:
-                db.session.add(mGoal)  # 增
+            if existGoal is not None:
+                db.session.delete(existGoal)  # 增
+            db.session.add(mGoal)  # 增
         elif goal.get('status') == 2:
             if existGoal is not None:
                 db.session.delete(existGoal)  # 删除
         elif goal.get('status') == 3:
-            if existGoal.timestamp < goal.get('timestamp'):
-                db.session.delete(existGoal)
-                db.session.add(mGoal)  # 改
+            if existGoal is not None:
+                if existGoal.timestamp < timestamp:
+                    db.session.delete(existGoal)
+                    db.session.add(mGoal)  # 改
     db.session.commit()
     goals_in_db = Goal.query.filter_by(username=upload_goals.get('username')).all()
     contList = []
