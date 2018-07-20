@@ -81,8 +81,10 @@ class Feedback(db.Model):
     username = db.Column(db.String(32), index=True)
     note = db.Column(db.String(128))
     date = db.Column(db.String(64))
+    email = db.Column(db.String(64))
 
-    def __init__(self, username, note, date):
+    def __init__(self, username, note, date, email):
         self.date = date
         self.note = note
         self.username = username
+        self.email = email
